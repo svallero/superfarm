@@ -1,5 +1,6 @@
 nis_domain="sfarm"
 
+#----------------------------------------------------------------------------------------------
 
 setup_nis_server(){
 
@@ -44,6 +45,8 @@ chkconfig yppasswdd on
 chkconfig ypxfrd on
 
 }
+
+#----------------------------------------------------------------------------------------------
 
 setup_nfs(){
 
@@ -101,6 +104,8 @@ chmod +x /root/mount_home.sh
 
 }
 
+#----------------------------------------------------------------------------------------------
+
 add_users(){
 
 echo "*** ADDING USERS ***"
@@ -130,17 +135,11 @@ echo "No login until home directory is properly mounted!" > /etc/nologin
 
 }
 
-# Entry point
-(
-setup_nis_server
-setup_nfs
-add_users # questo va dopo aver montato la home
-nologin
-) | tee -a /var/log/context.log
+#----------------------------------------------------------------------------------------------
 
-#############################################################################################
+create_alice_login(){
 
-# alice login script
+echo "*** CREATING ALICE LOGIN SCRIPT ***"
 
 cat > /usr/bin/alice-login <<\_EoF_
 #!/bin/sh
@@ -207,9 +206,14 @@ _EoF_
 
 chmod +x /usr/bin/alice-login
 
-#############################################################################################
+}
 
-# HTCondor user limits
+#----------------------------------------------------------------------------------------------
+
+configure_condor(){
+
+echo "*** SETTING HTCONDOR USER LIMITS ***"
+
 cat > /etc/condor/config.d/60sfarmquotas <<\_EoF_
 #
 # "Quotas" per user
@@ -244,24 +248,46 @@ APPEND_REQUIREMENTS = ( \
     (SubmitterUserResourcesInUse <= ($(MAX_RUNNING_JOBS_PER_NORMAL_USER)-1.0)) )
 _EoF_
 
-# boto version compatible with one-master 
+}
+
+#----------------------------------------------------------------------------------------------
+
+fix_boto_version(){
+
+echo "*** SETTING BOTO VERSION TO BE COMPATIBLE WITH ONE_MASTER ***"
 pip install boto==2.34
 
-# new INFN CA
+}
+
+#----------------------------------------------------------------------------------------------
+
+infn_ca_certificate(){
+
+echo "*** NEW INFN CA CERTIFICATE ***"
 wget https://security.fi.infn.it/CA/mgt/INFN-CA-2015.pem -O /tmp/cert.txt
 cat /tmp/cert.txt >> /etc/boto_cacerts.txt
 
-service condor restart
+}
 
-#service docker start
+#----------------------------------------------------------------------------------------------
 
-# ATTENTION: this last part was not tested yet!
-# Set memory limits for group "teo"
+set_memory_limits(){
+
+echo "*** SET MEMORY LIMITS FOR GROUP TEO ***"
+
 echo "@teo hard as 10000000" > /etc/security/limits.d/80-virtmem.conf
+
+}
+
+#----------------------------------------------------------------------------------------------
+
+configure_monit(){
+
+echo "*** CONFIGURING MONIT ***"
+# Configure Monit (assuming it is already installed)
 
 # Change: make sure that the home and teodata volumes correspond to /dev/vdd and /dev/vde
 # (the Sunstone GUI might help)
-# Configure Monit (assuming it is already installed)
 cat > /etc/monit.d/filesystem <<\_EoF_
 check filesystem  home with path /dev/vdd
       if space usage > 95% then alert
@@ -275,5 +301,24 @@ echo "set mailserver smtp.to.infn.it" >> /etc/monit.conf
 echo "set mail-format { from: sfarm@to.infn.it }" >> /etc/monit.conf
 echo "set alert svallero@to.infn.it" >> /etc/monit.conf
 
+}
+
+#----------------------------------------------------------------------------------------------
+
+# Entry point
+(
+setup_nis_server
+setup_nfs
+add_users # questo va dopo aver montato la home
+nologin
+create_alice_login
+configure_condor
+fix_boto_version
+infn_ca_certificate
+service condor restart
+# ATTENTION: this last part was not tested yet!
+set_memory_limits
+configure_monit
+) | tee -a /var/log/context.log
 
 
