@@ -234,8 +234,7 @@ NEGOTIATOR_MATCHLIST_CACHING = False
 MAX_RUNNING_JOBS_PER_NORMAL_USER = 1
 MAX_RUNNING_JOBS_PER_REAL_USER = 24
 MAX_RUNNING_JOBS_PER_POWER_USER = 200
-REAL_USERS = ebruna, mpuccio, mconcas, testuser, coppedis, msitta, aberaudo, mnardi, mmonteno, fprino, a
-depace
+REAL_USERS = ebruna, mpuccio, mconcas, testuser, coppedis, msitta, aberaudo, mnardi, mmonteno, fprino, adepace
 POWER_USERS = svallero
 
 # Per user quota implementation is done by enforcing the following Requirements
