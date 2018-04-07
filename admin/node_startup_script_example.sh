@@ -12,6 +12,8 @@ echo "Mount persistent volumes..."
 mkdir /teodata
 mount -t nfs -o proto=tcp,port=2049 $nis_server:/home /home
 mount -t nfs -o proto=tcp,port=2049 $nis_server:/teodata /teodata
+mkdir /alidata
+mount -t nfs -o proto=tcp,port=2049 172.16.215.100:/disk/alice-data /alidata
 
 }
 
