@@ -97,6 +97,9 @@ mount --bind /home /export/home
 service nfs start
 exportfs -a
 service nfs restart
+# data for alice group
+mkdir /alidata
+mount -t nfs -o proto=tcp,port=2049 172.16.215.100:/disk/alice-data /alidata
 echo "Now remove /etc/nologin !!!"
 EOF
 
